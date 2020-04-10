@@ -1,0 +1,189 @@
+stages:
+  - build
+  - deploy
+
+
+# build docker image and push to our registry
+build:
+  image: docker:19.03.8
+  services:
+    - docker:19.03.8-dind
+  variables:
+    DOCKER_HOST: tcp://localhost:2375
+    DOCKER_TLS_CERTDIR: ""
+  stage: build
+  script:
+    - docker build --tag $DOCKER_REGISTRY/covid-parser:$CI_COMMIT_SHA .
+    - docker push $DOCKER_REGISTRY/covid-parser:$CI_COMMIT_SHA
+
+
+# download kubectl, config and deploy
+deploy:
+  stage: deploy
+  script:
+    - apt-get update && apt-get install curl gettext-base -y
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.13.9/bin/linux/amd64/kubectl
+    - chmod +x ./kubectl
+    - mv ./kubectl /usr/local/bin/kubectl
+    - kubectl version --client
+    - kubectl config set-cluster k8s --server="${K8S_SERVER}"
+    - kubectl config set clusters.k8s.certificate-authority-data $(echo "${K8S_CERT}")
+    - kubectl config set-credentials gitlab --token="${K8S_TOKEN}"
+    - kubectl config set-context default --cluster=k8s --user=gitlab
+    - kubectl config use-context default
+    # cronjob keeps data up to date
+    - envsubst < deployment_cronjob.yaml | kubectl apply -f -
+    # gets author name for posts and location info + location_id
+    - envsubst < deployment_additional_posts_info.yaml | kubectl apply -f -
+    # gets location coordinates by location_id
+    - envsubst < deployment_additional_posts_coordinates_by_location_id.yaml | kubectl apply -f -
+    # gets posts languages
+    - envsubst < deployment_additional_languages.yaml | kubectl apply -f -
+    # many parsers each for specific phrase - only for historical parsing
+    - export TAG="covid"
+    - export NAMEPART="1"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covıd"
+    - export NAMEPART="2"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covid19"
+    - export NAMEPART="3"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covıd19"
+    - export NAMEPART="4"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covi̇d19"
+    - export NAMEPART="5"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covi̇d_19"
+    - export NAMEPART="6"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covid2020"
+    - export NAMEPART="7"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covidmemes"
+    - export NAMEPART="8"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronavid19"
+    - export NAMEPART="9"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covod19"
+    - export NAMEPART="10"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronavairus"
+    - export NAMEPART="11"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="cvid19"
+    - export NAMEPART="12"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covidiot"
+    - export NAMEPART="13"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="novelcorona"
+    - export NAMEPART="14"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covidindia"
+    - export NAMEPART="15"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="pandemic2020"
+    - export NAMEPART="16"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covidkindness"
+    - export NAMEPART="17"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="pandemicpreparedness"
+    - export NAMEPART="18"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covidnews"
+    - export NAMEPART="19"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="2019ncov"
+    - export NAMEPART="20"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="sarscov2"
+    - export NAMEPART="21"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="sars_cov_2"
+    - export NAMEPART="22"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronaeurope"
+    - export NAMEPART="23"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronausa"
+    - export NAMEPART="24"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronaworld"
+    - export NAMEPART="25"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronachina"
+    - export NAMEPART="26"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronacapital"
+    - export NAMEPART="27"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronaupdate"
+    - export NAMEPART="28"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronaextra"
+    - export NAMEPART="29"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="instacorona"
+    - export NAMEPART="30"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronawuhan"
+    - export NAMEPART="31"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronaitaly"
+    - export NAMEPART="32"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronavırusnews"
+    - export NAMEPART="33"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covid20"
+    - export NAMEPART="34"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="cốvịdịch"
+    - export NAMEPART="35"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronacases"
+    - export NAMEPART="36"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="wuhanchina"
+    - export NAMEPART="37"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="pandemic"
+    - export NAMEPART="38"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronaprotection"
+    - export NAMEPART="39"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronacure"
+    - export NAMEPART="40"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronafight"
+    - export NAMEPART="41"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="coronasymptoms"
+    - export NAMEPART="42"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="sarcov2"
+    - export NAMEPART="43"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="covidgermany"
+    - export NAMEPART="44"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="ncov"
+    - export NAMEPART="45"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="ncov2019"
+    - export NAMEPART="46"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="ncov2020"
+    - export NAMEPART="47"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="коронавирус"
+    - export NAMEPART="48"
+    - envsubst < deployment.yaml | kubectl apply -f -
+    - export TAG="2019ncov"
+    - export NAMEPART="49"
+    - envsubst < deployment.yaml | kubectl apply -f -

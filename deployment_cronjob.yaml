@@ -1,0 +1,58 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: instagram-tag-parser-cronjob
+  namespace: covid-instagram
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 10
+  schedule: "@hourly"
+  successfulJobsHistoryLimit: 10
+  suspend: false
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+      labels:
+        workload.user.cattle.io/workloadselector: instagram-tag-parser-cronjob
+    spec:
+      parallelism: 1
+      template:
+        metadata:
+          creationTimestamp: null
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: instagram-tag-parser-cronjob
+            image: ${DOCKER_REGISTRY}/covid-parser:${CI_COMMIT_SHA}
+            command: [ "python3.6", "-u", "parse_cronjob.py" ]
+            env:
+            - name: TAG
+              value: "${TAG}"
+            - name: MONGODB_HOST
+              value: ${MONGODB_HOST}
+            - name: MONGODB_PORT
+              value: '${MONGODB_PORT}'
+            - name: MONGODB_DB
+              value: ${MONGODB_DB}
+            - name: MONGODB_TASK_COLLECTION
+              value: ${MONGODB_TASK_COLLECTION}
+            - name: MONGODB_RESULT_COLLECTION
+              value: ${MONGODB_RESULT_COLLECTION}
+            - name: MONGODB_USER
+              value: ${MONGODB_USER}
+            - name: MONGODB_PASSWORD
+              value: ${MONGODB_PASSWORD}
+            - name: MONGODB_AUTH_DB
+              value: ${MONGODB_AUTH_DB}
+            - name: PROXIES_FILE_PATH_OR_URL
+              value: ${PROXIES_FILE_PATH_OR_URL}
+            - name: PROXIES_TYPE
+              value: ${PROXIES_TYPE}
+            volumeMounts:
+            - mountPath: ${MOUNT_CONTAINER_PATH}
+              name: proxies-mount
+          volumes:
+          - name: proxies-mount
+            hostPath:
+              path: ${MOUNT_HOST_PATH}
+              type: ""

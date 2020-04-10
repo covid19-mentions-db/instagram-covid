@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: instagram-posts-coordinates-by-location-id
+  namespace: covid-instagram
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: instagram-posts-coordinates-by-location-id
+  template:
+    metadata:
+      labels:
+        workload.user.cattle.io/workloadselector: instagram-posts-coordinates-by-location-id
+    spec:
+      containers:
+      - args:
+        - python3.6
+        - -u
+        - parse_post_coordinates_by_location_id.py
+        image: ${DOCKER_REGISTRY}/covid-parser:${CI_COMMIT_SHA}
+        imagePullPolicy: Always
+        name: instagram-posts-coordinates-by-location-id
+        env:
+        - name: TAG
+          value: "${TAG}"
+        - name: MONGODB_HOST
+          value: ${MONGODB_HOST}
+        - name: MONGODB_PORT
+          value: '${MONGODB_PORT}'
+        - name: MONGODB_DB
+          value: ${MONGODB_DB}
+        - name: MONGODB_TASK_COLLECTION
+          value: ${MONGODB_TASK_COLLECTION}
+        - name: MONGODB_RESULT_COLLECTION
+          value: ${MONGODB_RESULT_COLLECTION}
+        - name: MONGODB_USER
+          value: ${MONGODB_USER}
+        - name: MONGODB_PASSWORD
+          value: ${MONGODB_PASSWORD}
+        - name: MONGODB_AUTH_DB
+          value: ${MONGODB_AUTH_DB}
+        - name: PROXIES_FILE_PATH_OR_URL
+          value: ${PROXIES_FILE_PATH_OR_URL}
+        - name: PROXIES_TYPE
+          value: ${PROXIES_TYPE}
+        volumeMounts:
+        - mountPath: ${MOUNT_CONTAINER_PATH}
+          name: proxies-mount
+      volumes:
+      - name: proxies-mount
+        hostPath:
+          path: ${MOUNT_HOST_PATH}
+          type: ""
