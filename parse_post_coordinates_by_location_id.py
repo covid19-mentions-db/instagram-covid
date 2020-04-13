@@ -52,9 +52,7 @@ def update_values_from_db(tasks, ids_in_db):
                         '_id': task['_id']
                     },
                     {
-                        '$set': {'location.lat': location['lat'],
-                                 'location.lon': location['lon'],
-                                 }
+                        '$set': {'location.coordinates': [location['lat'], location['lon']]}
                     },
                     upsert=False,
                 )
@@ -89,7 +87,7 @@ def parse():
                 'source': 'instagram',
                 'object_type': 'post',
                 'location.id': {'$exists': True},
-                'location.lat': {'$exists': False},
+                'location.coordinates': {'$exists': False},
                 'location_status_code': {'$exists': False},
             },
             {
