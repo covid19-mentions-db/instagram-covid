@@ -11,6 +11,7 @@ from pymongo import UpdateOne
 # too short or too ambiguous, you might get different results everytime you run it.
 DetectorFactory.seed = 0
 BATCH_COUNT = int(os.getenv('BATCH_COUNT', '10000'))
+index_langs = ['da', 'nl', 'en', 'fi', 'fr', 'de', 'hu', 'it', 'nb', 'pt', 'ro', 'ru', 'es', 'sv', 'tr']
 
 
 if __name__ == '__main__':
@@ -53,12 +54,16 @@ if __name__ == '__main__':
             else:
                 lang = None
 
+            _set = {'lang': lang}
+            if lang in index_langs:
+                _set['index_lang'] = lang
+
             update_op = UpdateOne(
                 {
                     '_id': elem['_id']
                 },
                 {
-                    '$set': {'lang': lang}
+                    '$set': _set
                 },
                 upsert=False,
             )
