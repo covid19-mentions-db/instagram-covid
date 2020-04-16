@@ -287,6 +287,12 @@ def parse_location_batch(batch):
                 continue
 
             location = result['graphql']['location']
+
+            if not location['lat']:
+                return_result.append([location_id, {'location_status_code': 406}])
+                print(location_id, 406)
+                continue
+
             res = {
                 'lat': location['lat'],
                 'lon': location['lng'],
